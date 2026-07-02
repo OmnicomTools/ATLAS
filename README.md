@@ -31,5 +31,11 @@ Use `npm run preview` to serve a production-style static preview (same folder, n
 
 ## Deploy
 
-This folder is a static site — deploy as-is to Vercel, Netlify, Cloudflare Pages, or internal hosting.
-No build step; ensure `index.html`, `support.js`, `atlas.json`, and `geo.json` are all published together.
+This folder is a static site — no build step required.
+
+**GitHub Pages:** pushes to `main` deploy automatically via GitHub Actions.  
+Live URL: **https://omnicomtools.github.io/ATLAS/**
+
+Ensure `index.html`, `support.js`, `atlas.json`, `geo.json`, and `om-logo.jpg` are all published together.
+
+For other hosts (Vercel, Netlify, internal), deploy this folder as-is.
