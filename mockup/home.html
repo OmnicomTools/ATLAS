@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Home · ATLAS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/site.css" />
+</head>
+<body data-page="home">
+  <div id="site-header"></div>
+
+  <main class="home container">
+    <div class="home-top">
+      <div>
+        <section>
+          <h2 class="kicker">What's New <span class="dots" id="dots"></span></h2>
+          <div class="carousel" id="carousel"></div>
+        </section>
+
+        <section class="latest">
+          <h2 class="kicker reveal">Latest Reports</h2>
+          <div class="card-grid" id="latest"></div>
+        </section>
+      </div>
+
+      <aside>
+        <h2 class="kicker">Featured Reports</h2>
+        <div class="feature-list" id="featured"></div>
+        <a class="btn ghost block reveal" href="reports.html">View more reports</a>
+      </aside>
+    </div>
+
+    <div class="home-split">
+      <section>
+        <h2 class="kicker reveal">US Ad Reports <a class="see-all" href="reports.html?type=us-ad-market">See all →</a></h2>
+        <div class="row-list" id="us"></div>
+      </section>
+      <section>
+        <h2 class="kicker reveal">Global Ad Reports <a class="see-all" href="reports.html?type=global-ad-market">See all →</a></h2>
+        <div class="row-list" id="global"></div>
+      </section>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="assets/reports.js"></script>
+  <script src="assets/site.js"></script>
+  <script>
+    document.addEventListener('atlas:ready', () => {
+      const { byId, ph, esc, reportHref } = window.ATLAS;
+      const H = window.ATLAS_HOME;
+
+      const meta = (r) => `<div class="meta"><b>${esc(r.authors)}</b><span>${esc(r.date)}</span></div>`;
+      const row = (r) => `
+        <a class="row lift reveal" href="${reportHref(r)}">
+          <div>
+            <h3 class="title">${esc(r.title)}</h3>
+            <p class="summary">${esc(r.summary)}</p>
+            ${meta(r)}
+          </div>
+          ${ph(r, '')}
+        </a>`;
+
+      document.getElementById('featured').innerHTML = H.featured.map(byId).map(row).join('');
+      document.getElementById('us').innerHTML = H.us.map(byId).map(row).join('');
+      document.getElementById('global').innerHTML = H.global.map(byId).map(row).join('');
+      document.getElementById('latest').innerHTML = H.latest.map(byId).map((r) => `
+        <a class="card lift reveal" href="${reportHref(r)}">
+          ${ph(r, 'r16x9', r.id === 'fifa-2026' ? 'MAGNA ATLAS' : r.title)}
+          <h3 class="title">${esc(r.title)}</h3>
+          <p class="summary">${esc(r.summary)}</p>
+          ${meta(r)}
+        </a>`).join('');
+
+      const slides = [
+        { hue: 285, title: 'FIFA World Cup 2026', text: 'How the biggest tournament in history is reshaping sports advertising across North America.', href: 'reports.html?id=fifa-2026' },
+        { hue: 245, title: 'US Ad Market Update', text: 'Our latest quarterly view of US advertising revenues, by media and format.', href: 'reports.html?id=us-ad-market-update' },
+        { hue: 320, title: 'Small Shifts. Big Lifts.', text: 'New OM Media Trials research: interactive video drives three times higher purchase intent.', href: 'reports.html?id=small-shifts-big-lifts' },
+      ];
+      const carousel = document.getElementById('carousel');
+      const dots = document.getElementById('dots');
+      carousel.innerHTML = slides.map((s, i) => `
+        <a class="slide ${i === 0 ? 'active' : ''}" href="${s.href}">
+          <div class="ph" style="--h:${s.hue}"><span class="ph-tag">HERO IMAGE</span></div>
+          <div class="slide-caption">
+            <h3 class="title">${esc(s.title)}</h3>
+            <p>${esc(s.text)}</p>
+          </div>
+        </a>`).join('');
+      dots.innerHTML = slides.map((_, i) => `<button class="dot ${i === 0 ? 'active' : ''}" aria-label="Slide ${i + 1}"></button>`).join('');
+
+      let current = 0, timer;
+      const go = (i) => {
+        current = (i + slides.length) % slides.length;
+        carousel.querySelectorAll('.slide').forEach((el, k) => el.classList.toggle('active', k === current));
+        dots.querySelectorAll('.dot').forEach((el, k) => el.classList.toggle('active', k === current));
+      };
+      const start = () => { clearInterval(timer); timer = setInterval(() => go(current + 1), 6000); };
+      dots.addEventListener('click', (e) => {
+        const d = e.target.closest('.dot');
+        if (!d) return;
+        go([...dots.children].indexOf(d));
+        start();
+      });
+      carousel.addEventListener('mouseenter', () => clearInterval(timer));
+      carousel.addEventListener('mouseleave', start);
+      start();
+    });
+  </script>
+</body>
+</html>

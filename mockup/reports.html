@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Intelligence Reports · ATLAS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/site.css" />
+</head>
+<body data-page="reports">
+  <div id="site-header"></div>
+  <div class="subnav"><div class="container" id="tabs"></div></div>
+
+  <main class="container reports">
+    <aside>
+      <h2 class="kicker" id="list-title">All Reports</h2>
+      <div class="report-list" id="list"></div>
+    </aside>
+    <article class="report-detail" id="detail"></article>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="assets/reports.js"></script>
+  <script src="assets/site.js"></script>
+  <script>
+    document.addEventListener('atlas:ready', () => {
+      const { ph, esc, toast } = window.ATLAS;
+      const CATS = window.ATLAS_CATEGORIES;
+      const params = new URLSearchParams(location.search);
+      const type = CATS.some((c) => c.id === params.get('type')) ? params.get('type') : 'all';
+      const q = (params.get('q') || '').trim().toLowerCase();
+      const catLabel = (id) => CATS.find((c) => c.id === id)?.label || '';
+      const toTime = (d) => { const [m, day, y] = d.split('/').map(Number); return new Date(y, m - 1, day).getTime(); };
+
+      document.getElementById('tabs').innerHTML = CATS.map((c) =>
+        `<a href="reports.html${c.id === 'all' ? '' : '?type=' + c.id}" class="${c.id === type ? 'active' : ''}">${c.label}</a>`).join('');
+
+      const list = window.ATLAS_REPORTS
+        .filter((r) => type === 'all' || r.categories.includes(type))
+        .filter((r) => !q || [r.title, r.summary, r.authors].join(' ').toLowerCase().includes(q))
+        .sort((a, b) => toTime(b.date) - toTime(a.date));
+
+      document.getElementById('list-title').firstChild.textContent =
+        q ? `Results for “${params.get('q')}”` : type === 'all' ? 'All Reports' : catLabel(type);
+
+      const listEl = document.getElementById('list');
+      const detailEl = document.getElementById('detail');
+
+      if (!list.length) {
+        listEl.innerHTML = `<div class="empty">No reports found.</div>`;
+        detailEl.innerHTML = `<div class="empty">${type === 'publication-calendar' ? 'The publication calendar will appear here.' : 'Try another category or search term.'}</div>`;
+        return;
+      }
+
+      listEl.innerHTML = list.map((r) => `
+        <div class="report-item" data-id="${r.id}" tabindex="0">
+          <div>
+            <h3 class="title">${esc(r.title)}</h3>
+            <p class="summary">${esc(r.summary)}</p>
+            <div class="meta"><b>${esc(r.authors)}</b><span>${esc(r.date)}</span></div>
+          </div>
+          ${ph(r, '')}
+        </div>`).join('');
+
+      const saved = new Set();
+      const show = (id, first) => {
+        const r = list.find((x) => x.id === id) || list[0];
+        listEl.querySelectorAll('.report-item').forEach((el) => el.classList.toggle('active', el.dataset.id === r.id));
+        const label = type !== 'all' ? catLabel(type) : catLabel(r.categories[0]);
+        detailEl.classList.remove('swap');
+        detailEl.innerHTML = `
+          <div class="detail-head">
+            <div>
+              <div class="detail-top">
+                <span class="cat">${esc(label)}</span>
+                <div class="detail-actions">
+                  <button data-act="save" class="${saved.has(r.id) ? 'saved' : ''}">${saved.has(r.id) ? '★ Saved' : '☆ Save'}</button>
+                  <button data-act="share">↗ Share</button>
+                </div>
+              </div>
+              <h1>${esc(r.title)}</h1>
+              <div class="published">Published on ${esc(r.date)}</div>
+              <div class="label">Authors</div>
+              <div class="authors">${esc(r.authors)}</div>
+              <div class="download">
+                <button class="btn" data-act="download">Download report <span aria-hidden="true">▾</span></button>
+                <div class="download-menu">
+                  <button data-fmt="PDF">Full report (PDF)</button>
+                  <button data-fmt="PowerPoint">Presentation (PPTX)</button>
+                  <button data-fmt="Excel">Data tables (XLSX)</button>
+                </div>
+              </div>
+            </div>
+            ${ph(r, 'r4x3', r.title)}
+          </div>
+          <div class="body">${esc(r.body || r.summary)}</div>`;
+        void detailEl.offsetWidth;
+        detailEl.classList.add('swap');
+        if (!first) {
+          const u = new URL(location.href);
+          u.searchParams.set('id', r.id);
+          history.replaceState(null, '', u);
+          if (window.innerWidth <= 960) detailEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      };
+
+      listEl.addEventListener('click', (e) => {
+        const item = e.target.closest('.report-item');
+        if (item) show(item.dataset.id);
+      });
+      listEl.addEventListener('keydown', (e) => {
+        const item = e.target.closest('.report-item');
+        if (item && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); show(item.dataset.id); }
+      });
+
+      detailEl.addEventListener('click', (e) => {
+        const act = e.target.closest('[data-act]')?.dataset.act;
+        const fmt = e.target.closest('[data-fmt]')?.dataset.fmt;
+        const id = listEl.querySelector('.report-item.active')?.dataset.id;
+        const dl = detailEl.querySelector('.download');
+        if (act === 'download') { dl.classList.toggle('open'); return; }
+        if (fmt) { dl.classList.remove('open'); toast(`${fmt} download is disabled in this demo`); return; }
+        if (act === 'save') {
+          saved.has(id) ? saved.delete(id) : saved.add(id);
+          const b = e.target.closest('[data-act]');
+          b.classList.toggle('saved', saved.has(id));
+          b.textContent = saved.has(id) ? '★ Saved' : '☆ Save';
+          toast(saved.has(id) ? 'Saved to My Reports' : 'Removed from My Reports');
+        }
+        if (act === 'share') {
+          navigator.clipboard?.writeText(location.href).catch(() => {});
+          toast('Link copied to clipboard');
+        }
+      });
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.download')) detailEl.querySelector('.download')?.classList.remove('open');
+      });
+
+      show(params.get('id'), true);
+      const activeItem = listEl.querySelector('.report-item.active');
+      if (activeItem) listEl.scrollTop = activeItem.getBoundingClientRect().top - listEl.getBoundingClientRect().top - 8;
+    });
+  </script>
+</body>
+</html>

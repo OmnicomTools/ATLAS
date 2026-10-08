@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ATLAS · Omnicom Media Global Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/site.css" />
+</head>
+<body data-page="landing">
+  <main class="landing">
+    <div class="glow a"></div>
+    <div class="glow b"></div>
+    <div class="container">
+      <div>
+        <div class="landing-brand" data-rise>
+          <img src="../om-logo.jpg" alt="Omnicom Media" />
+          <span>ATLAS</span>
+        </div>
+        <h1 data-rise style="animation-delay:.08s">Global advertising <em>intelligence</em></h1>
+        <p class="lede" data-rise style="animation-delay:.16s">Forecasts, reports and market data from OMGI: Omnicom Media Global Intelligence, covering 70 markets and more than 60 years of media value.</p>
+        <div class="landing-actions" data-rise style="animation-delay:.24s">
+          <button class="btn" data-open="sso">OMC Employee Login</button>
+          <button class="btn ghost" data-open="subscriber">Subscribers Login</button>
+        </div>
+        <p class="fine" data-rise style="animation-delay:.32s">Company already subscribed? <a href="#" data-open="subscriber">Request Application Authorization</a> to create your login.</p>
+      </div>
+
+      <div class="stat-card" data-rise style="animation-delay:.2s">
+        <h2 class="kicker">ATLAS at a glance</h2>
+        <div class="stat"><span class="v" data-count="70">0</span><span class="l">markets forecast, representing 95% of the world's economy</span></div>
+        <div class="stat"><span class="v" data-count="40" data-suffix="+">0</span><span class="l">annual reports on audiences, spend and effectiveness</span></div>
+        <div class="stat"><span class="v">1980–2030</span><span class="l">annual US advertising data and forecasts</span></div>
+        <div class="stat"><span class="v" data-count="2" data-suffix="×">0</span><span class="l">global forecast updates every year</span></div>
+      </div>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <div class="modal-backdrop" id="sso" aria-hidden="true">
+    <div class="modal" role="dialog" aria-label="OMC Employee Login">
+      <button class="modal-close" data-close aria-label="Close">×</button>
+      <h2>OMC Employee Login</h2>
+      <p>Signing you in with your Omnicom single sign-on account.</p>
+      <ul class="sso-steps">
+        <li>Redirecting to Omnicom SSO</li>
+        <li>Verifying your identity</li>
+        <li>Loading ATLAS</li>
+      </ul>
+      <div class="demo-note">Demo only. No real sign-in takes place.</div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="subscriber" aria-hidden="true">
+    <form class="modal" role="dialog" aria-label="Subscribers Login" novalidate>
+      <button type="button" class="modal-close" data-close aria-label="Close">×</button>
+      <h2>Subscribers Login</h2>
+      <p>For external subscribers. Access is managed by your company's ATLAS subscription.</p>
+      <label class="field"><span>Work email</span><input type="email" name="email" placeholder="name@company.com" autocomplete="username" /></label>
+      <label class="field"><span>Password</span><input type="password" name="password" placeholder="••••••••" autocomplete="current-password" /></label>
+      <button class="btn block" type="submit">Sign in</button>
+      <div class="modal-links"><a href="#">Forgot password?</a><a href="#">Request access</a></div>
+      <div class="demo-note">Demo only. Any email and password will work.</div>
+    </form>
+  </div>
+
+  <script src="assets/site.js"></script>
+  <script>
+    document.addEventListener('atlas:ready', () => {
+      const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      document.querySelectorAll('[data-count]').forEach((el) => {
+        const end = +el.dataset.count, suffix = el.dataset.suffix || '';
+        if (reduce) { el.textContent = end + suffix; return; }
+        const t0 = performance.now() + 400, dur = 1200;
+        const tick = (t) => {
+          const p = Math.min(Math.max((t - t0) / dur, 0), 1);
+          el.textContent = Math.round(end * (1 - Math.pow(1 - p, 3))) + suffix;
+          if (p < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      });
+
+      const open = (id) => {
+        const m = document.getElementById(id);
+        m.classList.add('open');
+        m.setAttribute('aria-hidden', 'false');
+        if (id === 'sso') runSso(m);
+        else setTimeout(() => m.querySelector('input')?.focus(), 200);
+      };
+      const close = (m) => { m.classList.remove('open'); m.setAttribute('aria-hidden', 'true'); clearTimeout(m._t); };
+
+      document.addEventListener('click', (e) => {
+        const o = e.target.closest('[data-open]');
+        if (o) { e.preventDefault(); open(o.dataset.open); return; }
+        const m = e.target.closest('.modal-backdrop');
+        if (m && (e.target === m || e.target.closest('[data-close]'))) close(m);
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') document.querySelectorAll('.modal-backdrop.open').forEach(close);
+      });
+
+      function runSso(m) {
+        const steps = [...m.querySelectorAll('.sso-steps li')];
+        steps.forEach((s) => s.className = '');
+        let i = 0;
+        const next = () => {
+          if (i > 0) steps[i - 1].className = 'done';
+          if (i === steps.length) { m._t = setTimeout(() => location.href = 'home.html', 300); return; }
+          steps[i].className = 'doing';
+          i++;
+          m._t = setTimeout(next, 750);
+        };
+        next();
+      }
+
+      document.querySelector('#subscriber form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const f = e.target;
+        let ok = true;
+        ['email', 'password'].forEach((n) => {
+          const bad = !f[n].value.trim() || (n === 'email' && !f[n].value.includes('@'));
+          f[n].classList.toggle('invalid', bad);
+          if (bad) ok = false;
+        });
+        if (!ok) return;
+        const b = f.querySelector('button[type=submit]');
+        b.textContent = 'Signing in…';
+        b.disabled = true;
+        setTimeout(() => location.href = 'home.html', 700);
+      });
+    });
+  </script>
+</body>
+</html>

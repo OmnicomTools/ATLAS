@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Legal · ATLAS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/site.css" />
+</head>
+<body data-page="legal">
+  <div id="site-header"></div>
+
+  <main class="container">
+    <header class="page-head"><h1 id="doc-title">Privacy Policy</h1><p>Placeholder. Final wording to be supplied by the Legal and Data Privacy leads.</p></header>
+    <nav class="subnav legal-tabs" id="legal-tabs" style="border:0;background:none"></nav>
+    <article class="prose reveal" id="doc"></article>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="assets/reports.js"></script>
+  <script src="assets/site.js"></script>
+  <script>
+    document.addEventListener('atlas:ready', () => {
+      const DOCS = {
+        privacy: {
+          title: 'Privacy Policy',
+          sections: ['Who we are', 'What information we collect', 'How we use your information', 'Sharing your information', 'International transfers', 'How long we keep your information', 'Your rights', 'Contact us'],
+        },
+        terms: {
+          title: 'Terms of Use',
+          sections: ['Acceptance of terms', 'Access and accounts', 'Subscriber obligations', 'Permitted use of reports and data', 'Intellectual property', 'Disclaimers', 'Limitation of liability', 'Governing law'],
+        },
+        cookies: {
+          title: 'Cookie Policy',
+          sections: ['What cookies are', 'Strictly necessary cookies', 'Analytics cookies', 'Preference cookies', 'Managing your cookie settings', 'Changes to this policy'],
+        },
+      };
+      const key = DOCS[new URLSearchParams(location.search).get('doc')] ? new URLSearchParams(location.search).get('doc') : 'privacy';
+      const doc = DOCS[key];
+      document.title = `${doc.title} · ATLAS`;
+      document.getElementById('doc-title').textContent = doc.title;
+      document.getElementById('legal-tabs').innerHTML = Object.entries(DOCS).map(([k, d]) =>
+        `<a href="legal.html?doc=${k}" class="${k === key ? 'active' : ''}">${d.title}</a>`).join('');
+      document.getElementById('doc').innerHTML = doc.sections.map((s) => `
+        <h2>${s}</h2>
+        <p>Placeholder text for “${s}”. This section will be completed with approved wording before ATLAS launches.</p>`).join('') +
+        (key === 'cookies' ? `<p><button class="btn ghost" data-cookie-settings>Open cookie settings</button></p>` : '') +
+        `<p class="note">Last updated: to be confirmed.</p>`;
+    });
+  </script>
+</body>
+</html>
