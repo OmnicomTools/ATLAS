@@ -13,8 +13,8 @@
 
   const byId = (id) => (window.ATLAS_REPORTS || []).find((r) => r.id === id);
 
-  const ph = (r, cls = 'r16x9', label) =>
-    `<div class="ph ${cls}" style="--h:${r?.hue ?? 280}"><span class="ph-tag">IMAGE</span><span>${esc(label ?? r?.title ?? '')}</span></div>`;
+  const ph = (r, cls = 'r16x9') =>
+    `<div class="ph ${cls}" style="--h:${r?.hue ?? 280}" role="img" aria-label="Image placeholder"></div>`;
 
   const reportHref = (r) => `reports.html?id=${encodeURIComponent(r.id)}`;
 

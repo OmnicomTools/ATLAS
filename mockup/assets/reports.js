@@ -74,7 +74,7 @@ window.ATLAS_REPORTS = [
     date: '08/14/2025',
     categories: ['media-trials', 'media-behavior'],
     hue: 340,
-    summary: 'Summary to follow.',
+    summary: 'How brands earn attention by showing up authentically in the cultural moments their audiences care about most.',
   },
   {
     id: 'fifa-2026',
@@ -83,7 +83,7 @@ window.ATLAS_REPORTS = [
     date: '07/15/2026',
     categories: ['sports-reports'],
     hue: 290,
-    summary: 'Summary to follow.',
+    summary: 'Our outlook for the FIFA World Cup 2026 across the US, Canada and Mexico: audiences, sponsorship and the expected impact on advertising spend in host and participating markets.',
   },
   {
     id: 'us-ad-market-update',

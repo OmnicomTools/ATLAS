@@ -57,12 +57,9 @@
 
       listEl.innerHTML = list.map((r) => `
         <div class="report-item" data-id="${r.id}" tabindex="0">
-          <div>
-            <h3 class="title">${esc(r.title)}</h3>
-            <p class="summary">${esc(r.summary)}</p>
-            <div class="meta"><b>${esc(r.authors)}</b><span>${esc(r.date)}</span></div>
-          </div>
-          ${ph(r, '')}
+          <h3 class="title">${esc(r.title)}</h3>
+          <p class="summary">${esc(r.summary)}</p>
+          <div class="meta"><b>${esc(r.authors)}</b><span>${esc(r.date)}</span></div>
         </div>`).join('');
 
       const saved = new Set();
@@ -71,20 +68,23 @@
         listEl.querySelectorAll('.report-item').forEach((el) => el.classList.toggle('active', el.dataset.id === r.id));
         const label = type !== 'all' ? catLabel(type) : catLabel(r.categories[0]);
         detailEl.classList.remove('swap');
+        const related = window.ATLAS_REPORTS
+          .filter((x) => x.id !== r.id && x.categories.some((c) => r.categories.includes(c)))
+          .slice(0, 3);
         detailEl.innerHTML = `
-          <div class="detail-head">
-            <div>
-              <div class="detail-top">
-                <span class="cat">${esc(label)}</span>
-                <div class="detail-actions">
-                  <button data-act="save" class="${saved.has(r.id) ? 'saved' : ''}">${saved.has(r.id) ? '★ Saved' : '☆ Save'}</button>
-                  <button data-act="share">↗ Share</button>
-                </div>
+          <div class="detail-banner">${ph(r, '')}</div>
+          <div class="detail-content">
+            <div class="detail-top">
+              <span class="cat">${esc(label)}</span>
+              <div class="detail-actions">
+                <button data-act="save" class="${saved.has(r.id) ? 'saved' : ''}">${saved.has(r.id) ? '★ Saved' : '☆ Save'}</button>
+                <button data-act="share">↗ Share</button>
               </div>
-              <h1>${esc(r.title)}</h1>
-              <div class="published">Published on ${esc(r.date)}</div>
-              <div class="label">Authors</div>
-              <div class="authors">${esc(r.authors)}</div>
+            </div>
+            <h1>${esc(r.title)}</h1>
+            <div class="detail-meta">
+              <div><div class="label">Published</div><div class="value">${esc(r.date)}</div></div>
+              <div><div class="label">Authors</div><div class="value">${esc(r.authors)}</div></div>
               <div class="download">
                 <button class="btn" data-act="download">Download report <span aria-hidden="true">▾</span></button>
                 <div class="download-menu">
@@ -94,9 +94,18 @@
                 </div>
               </div>
             </div>
-            ${ph(r, 'r4x3', r.title)}
-          </div>
-          <div class="body">${esc(r.body || r.summary)}</div>`;
+            <div class="body">${esc(r.body || r.summary)}</div>
+            ${related.length ? `
+            <section class="related">
+              <h2 class="kicker">More in ${esc(catLabel(r.categories[0]))}</h2>
+              <div class="related-grid">
+                ${related.map((x) => `<a href="reports.html?${x.categories.includes(type) ? 'type=' + type + '&' : ''}id=${x.id}">
+                  <h3 class="title">${esc(x.title)}</h3>
+                  <div class="meta"><b>${esc(x.authors)}</b><span>${esc(x.date)}</span></div>
+                </a>`).join('')}
+              </div>
+            </section>` : ''}
+          </div>`;
         void detailEl.offsetWidth;
         detailEl.classList.add('swap');
         if (!first) {
